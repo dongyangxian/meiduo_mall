@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="meiduo_mall@localhost" uuid="533ecfff-0b15-48e2-80ff-17a82e15505e">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <secret-storage>master_key</secret-storage>
+      <first-sync>true</first-sync>
+      <user-name>meiduo</user-name>
+    </data-source>
+  </component>
+</project>
