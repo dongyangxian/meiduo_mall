@@ -11,10 +11,21 @@ from rest_framework.views import APIView
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
-# usernames/(?P<username>\w{5,20})/count/
 from users.models import User
 
+# mobiles/(?P<mobile>1[3-9]\d{9})/count
+class UserMobileView(APIView):
+    def get(self, request, mobile):
+        # 查询是否存在
+        count = User.objects.filter(mobile=mobile).count()
+        # 结果处理
+        data = {
+            "mobile": mobile,
+            "count": count
+        }
+        return Response(data)
 
+# usernames/(?P<username>\w{5,20})/count/
 class UserNameView(APIView):
     def get(self, request, username):
         # 查询是否存在
