@@ -6,10 +6,25 @@ import random
 
 # get 127.0.0.1/register/18011112222
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
+# usernames/(?P<username>\w{5,20})/count/
+from users.models import User
+
+
+class UserNameView(APIView):
+    def get(self, request, username):
+        # 查询是否存在
+        count = User.objects.filter(username=username).count()
+        # 结果处理
+        data = {
+            "username": username,
+            "count": count
+        }
+        return Response(data)
 
 class SMSCodeView(GenericAPIView):
 
