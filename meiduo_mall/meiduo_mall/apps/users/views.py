@@ -15,16 +15,19 @@ class SMSCodeView(GenericAPIView):
     def get(self, request, mobile):
         # 验证
         conn = get_redis_connection('verify')
-        flag = conn.get('sms_code_%s' % mobile)
+        flag = conn.get('sms_flag_%s' % mobile)
         if flag:
             return Response({"message": "error"})
         # 生成验证码
         sms_code = '%06d' % random.randint(0, 999999)
         # 保存到redis
-
-        conn.setex('sms_code_%s' % mobile, 300, sms_code)
+        # 使用管道优化redis存储短信
+        p1 = conn.pipeline()
+        p1.setex('sms_code_%s' % mobile, 300, sms_code)
+        p1.setex('sms_flag_%s' % mobile, 60, 1)
+        p1.execute()
         print(sms_code)
         # 发送短信
-        # CCP().send_template_sms(mobile, [sms_code, '5'], 1)
+        CCP().send_template_sms(mobile, [sms_code, '5'], 1)
         # 返回响应
         return Response({"message": "OK"})
