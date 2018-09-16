@@ -7,11 +7,16 @@ import random
 # get 127.0.0.1/register/18011112222
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.generics import CreateAPIView
+from users.serializers import CreateUserSerializer
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
 from users.models import User
+
+class UserView(CreateAPIView):
+    """用户注册接口"""
+    serializer_class = CreateUserSerializer
 
 # mobiles/(?P<mobile>1[3-9]\d{9})/count
 class UserMobileView(APIView):
