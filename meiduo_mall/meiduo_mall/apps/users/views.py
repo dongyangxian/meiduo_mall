@@ -7,6 +7,7 @@ import random
 # get 127.0.0.1/register/18011112222
 from rest_framework.response import Response
 
+from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
 
@@ -28,6 +29,6 @@ class SMSCodeView(GenericAPIView):
         p1.execute()
         print(sms_code)
         # 发送短信
-        CCP().send_template_sms(mobile, [sms_code, '5'], 1)
+        send_sms_code(mobile, sms_code)
         # 返回响应
         return Response({"message": "OK"})
