@@ -219,6 +219,11 @@ JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'users.utils.jwt_response_payload_handler',
 }
 
+# 告知Django使用我们自定义的认证后端
+AUTHENTICATION_BACKENDS = [
+    'users.utils.MobileNameView',
+]
+
 # 让Django认证系统使用我们自定义的模型类
 AUTH_USER_MODEL = 'users.User'
 
