@@ -60,6 +60,6 @@ class SMSCodeView(GenericAPIView):
         p1.execute()
         print(sms_code)
         # 发送短信
-        send_sms_code(mobile, sms_code)
+        send_sms_code.delay(mobile, sms_code)
         # 返回响应
         return Response({"message": "OK"})
