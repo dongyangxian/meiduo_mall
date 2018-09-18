@@ -1,5 +1,6 @@
 import re
 from django.contrib.auth.backends import ModelBackend
+from django.db.models import Q
 
 from users.models import User
 
@@ -15,7 +16,7 @@ class MobileNameView(ModelBackend):
         # 判断username是否为手机
         try:
             if re.match(r'1[3-9]\d{9}$', username):
-                user = User.objects.get(mobile=username)
+                user = User.objects.get(Q(mobile=username) | Q(username=username))
             else:
                 user = User.objects.get(username=username)
         except:

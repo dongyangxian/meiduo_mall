@@ -41,7 +41,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def validate_mobile(self, value):
         if not re.match(r'1[3-9]\d{9}$', value):
             return serializers.ValidationError('手机格式不正确')
-
         return value
 
     # 判断是否选中协议
