@@ -16,7 +16,7 @@ from oauth.serializers import OAuthQQSerializer
 
 class QQAuthUserView(CreateAPIView):
 
-    # serializer_class = OAuthQQSerializer
+    serializer_class = OAuthQQSerializer
     def get(self, request):
         # 1. 获取前端传来的code
         code = request.query_params.get('code')

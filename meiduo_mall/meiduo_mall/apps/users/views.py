@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django_redis import get_redis_connection
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 import random
 # Create your views here.
 
@@ -8,11 +8,17 @@ import random
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
-from users.serializers import CreateUserSerializer
+from users.serializers import CreateUserSerializer, UserDetailSerializer
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
 from users.models import User
+
+class UserDetailView(RetrieveAPIView):
+    """个人中心展示"""
+    serializer_class = UserDetailSerializer
+    def get_object(self):
+        return self.request.user
 
 class UserView(CreateAPIView):
     """用户注册接口"""
