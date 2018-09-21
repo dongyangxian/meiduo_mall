@@ -1,10 +1,13 @@
 import re
 
+from django.conf import settings
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
 from users.models import User
 from rest_framework_jwt.settings import api_settings
+from celery_tasks.email.tasks import send_email
+from itsdangerous import TimedJSONWebSignatureSerializer as TJS
 
 class UserEmailSerializer(serializers.ModelSerializer):
     """保存邮箱，发送邮件"""
@@ -19,6 +22,12 @@ class UserEmailSerializer(serializers.ModelSerializer):
         user = instance
         user.email = validated_data['email']
         user.save()
+
+        # 用户数据加密
+        tjs = TJS(settings.SECRET_KEY, 300)
+        token = tjs.dumps({"id": user.id, "username": user.username}).decode()
+
+        send_email.delay(token, validated_data['email'])
 
         return user
 
