@@ -5,18 +5,27 @@ import random
 # Create your views here.
 
 # get 127.0.0.1/register/18011112222
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
-from users.serializers import CreateUserSerializer, UserDetailSerializer
+from rest_framework.generics import CreateAPIView, UpdateAPIView
+from users.serializers import CreateUserSerializer, UserDetailSerializer, UserEmailSerializer
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 
 from users.models import User
 
+class UserEmailView(UpdateAPIView):
+    """保存邮箱，并发送邮件"""
+    serializer_class = UserEmailSerializer
+    def get_object(self):
+        """因为前端没有传关于用户的信息，所以底层的方法无法获取到用户，只能重写方法，利用self.request来获取"""
+        return self.request.user
+
 class UserDetailView(RetrieveAPIView):
     """个人中心展示"""
     serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]  # 添加权限
     def get_object(self):
         return self.request.user
 

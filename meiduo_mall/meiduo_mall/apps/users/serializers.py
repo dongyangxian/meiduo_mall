@@ -6,6 +6,22 @@ from rest_framework import serializers
 from users.models import User
 from rest_framework_jwt.settings import api_settings
 
+class UserEmailSerializer(serializers.ModelSerializer):
+    """保存邮箱，发送邮件"""
+    class Meta:
+        model = User
+        fields = ('id', 'email')
+
+    def update(self, instance, validated_data):
+        # 1. 用于序列化时，将模型类对象传入instance参数
+        # 2. 用于反序列化时，将要被反序列化的数据传入data参数
+        # 保存邮箱，并发送
+        user = instance
+        user.email = validated_data['email']
+        user.save()
+
+        return user
+
 class UserDetailSerializer(serializers.ModelSerializer):
     """用户个人中心展示"""
     class Meta:
