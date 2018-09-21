@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.shortcuts import render
 from django_redis import get_redis_connection
+from rest_framework import status
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
 import random
 # Create your views here.
@@ -12,8 +14,41 @@ from rest_framework.generics import CreateAPIView, UpdateAPIView
 from users.serializers import CreateUserSerializer, UserDetailSerializer, UserEmailSerializer
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
+from itsdangerous import TimedJSONWebSignatureSerializer as TJS
 
 from users.models import User
+
+class VerifyEmailView(APIView):
+    """邮箱验证"""
+    def get(self, request):
+        """
+        思路：前端会携带着包含有用户id和username的token，
+             后台只需获取到里面的数据，加以判断，然后更改email_active的状态即可
+        :return:
+        """
+        # 1. 获取token，判断
+        token = request.query_params.get("token")
+        if not token:
+            return Response({'message': '缺少token'}, status=status.HTTP_400_BAD_REQUEST)
+        # 2. 解码
+        tjs = TJS(settings.SECRET_KEY, 300)
+        try:
+            data = tjs.loads(token)
+        except:
+            raise Exception('错误的token')
+
+        # 3. 判断是否存在用户
+        try:
+            user = User.objects.get(id=data['id'], username=data['username'])
+        except:
+            # 如果不存在，说明token无效
+            return Response({'message': '链接信息无效'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 4. 如果存在就修改email_active
+        user.email_active = True
+        user.save()
+
+        return Response({'message': 'OK'})
 
 class UserEmailView(UpdateAPIView):
     """保存邮箱，并发送邮件"""
