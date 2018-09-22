@@ -1,17 +1,17 @@
 from django.shortcuts import render
 from rest_framework.generics import ListAPIView
-
+from rest_framework_extensions.cache.mixins import CacheResponseMixin
 from areas.models import Area
 from areas.serializers import AreasSerializer
 # Create your views here.
 
-class AreaView(ListAPIView):
+class AreaView(CacheResponseMixin, ListAPIView):
     """省市区信息查询"""
     serializer_class = AreasSerializer
     # 添加查询集
     queryset = Area.objects.filter(parent=None)
 
-class CityView(ListAPIView):
+class CityView(CacheResponseMixin, ListAPIView):
     """市区信息查询"""
     serializer_class = AreasSerializer
     # 查询市县的信息，需要重写get_query()
