@@ -43,6 +43,21 @@ class EditAddressView(viewsets.ViewSet):
         # 返回
         return Response(serializer.data, status=201)
 
+    def destory(self, request, id=None):
+        """地址删除"""
+        # id判断
+        try:
+            address = Address.objects.get(id=id)
+        except:
+            return Response({'data': '地址不存在'})
+
+        # 删除
+        address.delete()
+
+        # 返回数据
+        return Response(status=204)
+
+
 class CreateAddressView(CreateAPIView):
     serializer_class = AddressSerializer
     """新增地址，及地址查询"""
