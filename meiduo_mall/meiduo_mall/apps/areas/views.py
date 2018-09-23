@@ -52,8 +52,8 @@ class EditAddressView(viewsets.ViewSet):
             return Response({'data': '地址不存在'})
 
         # 删除
-        address.delete()
-
+        address.is_deleted = True
+        address.save()
         # 返回数据
         return Response(status=204)
 
