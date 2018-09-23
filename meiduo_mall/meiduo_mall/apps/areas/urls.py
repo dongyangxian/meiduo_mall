@@ -8,6 +8,6 @@ urlpatterns = [
 
     url(r'^addresses/(?P<id>\d+)/title/$', EditAddressView.as_view({'put': 'title'})),  # 编辑标题  put
     url(r'^addresses/(?P<pk>\d+)/status/$', CreateAddressView.as_view()),  # 设为默认地址  put
+    url(r'^addresses/(?P<id>\d+)/$', EditAddressView.as_view({'put': 'update'})),  # 地址修改  put
     url(r'^addresses/(?P<pk>\d+)/$', CreateAddressView.as_view()),  # 地址删除  delete
-    url(r'^addresses/(?P<pk>\d+)/$', CreateAddressView.as_view()),  # 地址修改  put
 ]

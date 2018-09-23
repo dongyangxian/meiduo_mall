@@ -42,3 +42,11 @@ class AddressSerializer(serializers.ModelSerializer):
         # 返回用户
         return address
 
+    def update(self, instance, validated_data):
+        # 获取用户id
+        user = instance
+        user = super().update(user, validated_data)
+        user.save()
+
+        return user
+

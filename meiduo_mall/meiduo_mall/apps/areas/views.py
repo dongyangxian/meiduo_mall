@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, GenericAPIView
 from rest_framework.response import Response
 from rest_framework_extensions.cache.mixins import CacheResponseMixin
 from areas.models import Area
@@ -11,6 +11,7 @@ from areas.serializers import AreasSerializer, AddressSerializer
 class EditAddressView(viewsets.ViewSet):
     """收货地址编辑：标题修改/设为默认地址/内容修改/删除"""
     def title(self, request, id=None):
+        """编辑地址标题"""
         # 1. 接收title及id
         title = request.data['title']
 
@@ -26,6 +27,21 @@ class EditAddressView(viewsets.ViewSet):
         # 4. 返回结果
         return Response({'data': 'Ok'})
 
+    def update(self, request, id=None):
+        # 接收内容（前端发送为json格式，用request.data）
+        # request.data -> 前端发送内容
+        # id判断
+        try:
+            address = Address.objects.get(id=id)
+        except:
+            return Response({'data': '地址不存在'})
+        # 修改，保存(调用序列化器，进行数据更新操作)
+        serializer = AddressSerializer(instance=address, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # 返回
+        return Response(serializer.data, status=201)
 
 class CreateAddressView(CreateAPIView):
     serializer_class = AddressSerializer
