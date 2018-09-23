@@ -4,7 +4,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, GenericAPIView
 from rest_framework.response import Response
 from rest_framework_extensions.cache.mixins import CacheResponseMixin
 from areas.models import Area
-from users.models import Address
+from users.models import Address, User
 from areas.serializers import AreasSerializer, AddressSerializer
 # Create your views here.
 
@@ -57,6 +57,18 @@ class EditAddressView(viewsets.ViewSet):
         # 返回数据
         return Response(status=204)
 
+    def default_address(self, request, id=None):
+        """修改默认地址"""
+        # id判断
+        try:
+            address = Address.objects.get(id=id)
+        except:
+            return Response({'data': '地址不存在'})
+
+        self.request.user.default_address_id = address.id
+        self.request.user.save()
+
+        return Response(status=204)
 
 class CreateAddressView(CreateAPIView):
     serializer_class = AddressSerializer
