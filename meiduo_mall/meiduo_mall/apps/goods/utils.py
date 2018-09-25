@@ -1,7 +1,14 @@
 from collections import OrderedDict
 
+from rest_framework.pagination import PageNumberPagination
+
 from .models import GoodsChannel
 
+class StandardResultsSetPagination(PageNumberPagination):
+    """创建分页器"""
+    # page_size = 10
+    page_size_query_param = 'page_size'  # page_size：与前端的参数名一致
+    max_page_size = 10
 
 def get_categories():
     """
