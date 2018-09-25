@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'corsheaders',  # 跨域注册
     'oauth.apps.OauthConfig',  # 注册子应用
     'areas.apps.AreasConfig',  # 注册收货地址应用
+    'goods.apps.GoodsConfig',
+    'contents.apps.ContentsConfig',
 ]
 
 MIDDLEWARE = [
