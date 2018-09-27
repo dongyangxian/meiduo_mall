@@ -11,6 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, UpdateAPIView
+
+from goods.models import SKU
+from goods.serializers import SKUSerializer
 from users.serializers import CreateUserSerializer, UserDetailSerializer, UserEmailSerializer, \
     AddUserBrowsingHistorySerializers
 from celery_tasks.sms.tasks import send_sms_code
@@ -26,6 +29,25 @@ class AddUserBrowsingHistoryView(CreateAPIView):
         但是，由于默认存储在mysql中，所以在create方法中要重写
     """
     serializer_class = AddUserBrowsingHistorySerializers
+
+    def get(self, request):
+        """获取浏览历史记录"""
+        print(self)
+        user = request.user
+
+        # 链接数据库，取出sku_id
+        conn = get_redis_connection('history')
+
+        sku_id_list = conn.lrange('history_%s' % user.id, 0, 5)
+
+        # 获取所有的商品对象
+        sku = []
+        for sku_id in sku_id_list:
+            sku.append(SKU.objects.get(id=sku_id))
+        # 序列化
+        serializer = SKUSerializer(sku, many=True)
+        # 返回
+        return Response(serializer.data)
 
 class VerifyEmailView(APIView):
     """邮箱验证"""
