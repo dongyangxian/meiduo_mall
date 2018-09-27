@@ -22,3 +22,4 @@ class SKUSearchView(HaystackViewSet):
     """SKU搜索"""
     index_models = [SKU]
     serializer_class = SKUSearchSerializer
+    pagination_class = StandardResultsSetPagination

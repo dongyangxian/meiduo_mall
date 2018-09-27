@@ -89,8 +89,8 @@ var vm = new Vue({
                 })
                 .then(response => {
                     this.count = response.data.count;
-                    this.skus = response.data;
-                    for(var i=0; i<this.skus.length; i++){
+                    this.skus = response.data.results;
+                    for(var i=0; i<this.count; i++){
                         this.skus[i].url = '/goods/' + this.skus[i].id + ".html";
                     }
                 })
