@@ -4,10 +4,46 @@ from django.conf import settings
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
+from goods.models import SKU
 from users.models import User
 from rest_framework_jwt.settings import api_settings
 from celery_tasks.email.tasks import send_email
 from itsdangerous import TimedJSONWebSignatureSerializer as TJS
+
+class AddUserBrowsingHistorySerializers(serializers.Serializer):
+    """保存商品的浏览记录"""
+    sku_id = serializers.IntegerField(min_value=1)
+
+    # 验证
+    def validate(self, attrs):
+        # 验证商品是否存在
+        try:
+            SKU.objects.get(id=attrs['sku_id'])
+        except:
+            raise serializers.ValidationError('商品不存在')
+        return attrs
+
+    def create(self, validated_data):
+        # 1. 获取数据
+        user = self.context['request'].user
+        sku_id = validated_data['sku_id']
+
+        # 2. 链接数据库
+        conn = get_redis_connection('history')
+        p1 = conn.pipeline()
+
+        # 2.1 去重
+        p1.lrem('history_%s' % user.id, 0, sku_id)  # count = 0: 移除所有值为 value 的元素
+
+        # 2.2 写入数据
+        p1.lpush('history_%s' % user.id, sku_id)
+
+        # 2.3 控制数据长度
+        p1.ltrim('history_%s' % user.id, 0, 4)
+        p1.execute()
+
+        # 返回数据
+        return validated_data
 
 class UserEmailSerializer(serializers.ModelSerializer):
     """保存邮箱，发送邮件"""

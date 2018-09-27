@@ -11,12 +11,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, UpdateAPIView
-from users.serializers import CreateUserSerializer, UserDetailSerializer, UserEmailSerializer
+from users.serializers import CreateUserSerializer, UserDetailSerializer, UserEmailSerializer, \
+    AddUserBrowsingHistorySerializers
 from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.yuntongxun.sms import CCP
 from itsdangerous import TimedJSONWebSignatureSerializer as TJS
 
 from users.models import User
+
+class AddUserBrowsingHistoryView(CreateAPIView):
+    """
+    思路：
+        当用户进入商品的详情页时，保存商品的id到redis中。
+        但是，由于默认存储在mysql中，所以在create方法中要重写
+    """
+    serializer_class = AddUserBrowsingHistorySerializers
 
 class VerifyEmailView(APIView):
     """邮箱验证"""
