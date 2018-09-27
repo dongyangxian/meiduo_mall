@@ -8,7 +8,8 @@ from django_redis import get_redis_connection
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from carts.serializers import CartsSerializer
+from carts.serializers import CartsSerializer, Cartserializers
+from goods.models import SKU
 
 
 class CartsView(APIView):
@@ -52,7 +53,7 @@ class CartsView(APIView):
             conn.hincrby('cart_%s' % user.id, sku_id, count)
             # 3.1.3 Set类型保存
             if selected:
-                conn.sadd('cart_%s' % user.id, sku_id)
+                conn.sadd('cart_selected%s' % user.id, sku_id)
             # 3.1.4 返回响应
             return Response(serializer.data)
         # 3.2 用户未登录
@@ -83,3 +84,50 @@ class CartsView(APIView):
 
     def get(self, request):
         """查询购物车的商品信息"""
+        # 1. 获取用户，判断状态
+        try:
+            user = request.user
+        except:
+            user = None
+
+        # 2. 用户登录状态
+        if user is not None:
+            # 2.1 连接数据库
+            conn = get_redis_connection('carts')
+
+            # 2.2 查询Hash类型数据
+            sku_id_count_list = conn.hgetall('cart_%s' % user.id)
+
+            # 2.3 查询Set类型数据
+            sku_id_list = conn.smembers('cart_selected%s' % user.id)
+
+            # 2.4 组织成cookie类型的数据
+            cart = {}
+            for sku_id, count in sku_id_count_list.items():
+                cart[int(sku_id)] = {
+                    'count': count,
+                    'selected': sku_id in sku_id_list  # 如果sku_id存在于sku_selected就为True，否则为False
+                }
+        # 3. 用户未登录状态
+        else:
+            # 3.1 获取cookie，判断是否存在
+            cart_cookie = request.COOKIES.get('cart_cookie')
+            if cart_cookie:
+                cart = pickle.loads(base64.b64decode(cart_cookie.encode()))
+            else:
+                # 3.2 如果不存在就置为{}
+                cart = {}
+
+        # 4. 查询所有的商品列表
+        sku_list = SKU.objects.filter(id__in=cart.keys())
+
+        # 5. 添加count和selected属性，以便进行序列化
+        for sku in sku_list:
+            sku.count = cart[sku.id]['count']
+            sku.selected = cart[sku.id]['selected']
+
+        # 6. 序列化数据
+        serializer = Cartserializers(sku_list, many=True)
+
+        # 7. 返回响应
+        return Response(serializer.data)

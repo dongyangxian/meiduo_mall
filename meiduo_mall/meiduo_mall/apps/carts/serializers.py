@@ -2,6 +2,14 @@ from rest_framework import serializers
 
 from goods.models import SKU
 
+class Cartserializers(serializers.ModelSerializer):
+    """购物车信息获取"""
+    count = serializers.IntegerField(read_only=True)
+    selected = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = SKU
+        fields = '__all__'
 
 class CartsSerializer(serializers.Serializer):
     """商品信息添加到购物车"""
