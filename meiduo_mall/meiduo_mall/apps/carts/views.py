@@ -40,9 +40,9 @@ class CartSelectAllView(APIView):
             sku_id_list = sku_id_conut.keys()
             # 3.1.3 Set类型保存
             if selected:
-                conn.sadd('cart_selected%s' % user.id, *sku_id_list)
+                conn.sadd('cart_selected_%s' % user.id, *sku_id_list)
             else:
-                conn.srem('cart_selected%s' % user.id, *sku_id_list)
+                conn.srem('cart_selected_%s' % user.id, *sku_id_list)
             # 3.1.4 返回响应
             return Response(serializer.data)
         # 3.2 用户未登录
@@ -103,7 +103,7 @@ class CartsView(APIView):
             conn.hincrby('cart_%s' % user.id, sku_id, count)
             # 3.1.3 Set类型保存
             if selected:
-                conn.sadd('cart_selected%s' % user.id, sku_id)
+                conn.sadd('cart_selected_%s' % user.id, sku_id)
             # 3.1.4 返回响应
             return Response(serializer.data)
         # 3.2 用户未登录
@@ -203,7 +203,7 @@ class CartsView(APIView):
             conn = get_redis_connection('carts')
 
             # 3.1.2 Hash类型保存
-            conn.hmset('cart_%s' % user.id, sku_id, count)
+            conn.hset('cart_%s' % user.id, sku_id, count)
             # 3.1.3 Set类型保存
             if selected:
                 conn.sadd('cart_selected%s' % user.id, sku_id)
