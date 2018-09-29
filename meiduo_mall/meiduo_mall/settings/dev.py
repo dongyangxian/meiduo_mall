@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'areas.apps.AreasConfig',  # 注册收货地址应用
     'goods.apps.GoodsConfig',
     'contents.apps.ContentsConfig',
-
+    'orders.apps.OrdersConfig',  # 订单应用注册
     'ckeditor',  # 富文本编辑器
     'ckeditor_uploader',  # 富文本编辑器上传图片模块
 
