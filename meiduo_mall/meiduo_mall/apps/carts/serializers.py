@@ -2,6 +2,10 @@ from rest_framework import serializers
 
 from goods.models import SKU
 
+class CartSelectAllSerializer(serializers.Serializer):
+    """购物车全选"""
+    selected = serializers.BooleanField(label='全选')
+
 class CartDeleteSerializer(serializers.Serializer):
     """删除购物车数据"""
     sku_id = serializers.IntegerField(label='商品id', min_value=1)

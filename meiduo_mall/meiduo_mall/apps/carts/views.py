@@ -9,9 +9,58 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from carts.serializers import CartsSerializer, Cartserializers, CartDeleteSerializer
+from carts.serializers import CartsSerializer, Cartserializers, CartDeleteSerializer, CartSelectAllSerializer
 from goods.models import SKU
 
+
+class CartSelectAllView(APIView):
+    """购物车全选或者全不选"""
+    def perform_authentication(self, request):
+        """重写用户认证方法，允许未登录的用户访问此接口"""
+        pass
+    def put(self, request):
+        # 1. 获取前端json数据
+        data = request.data
+        # 2. 序列化数据，并取出三个数据（sku_id, count, selected）
+        serializer = CartSelectAllSerializer(data)
+        selected = serializer.data['selected']
+        # 3. 用户登录判断
+        try:
+            user = request.user
+        except:
+            user = None
+
+        # 3.1 用户已登录
+        if user is not None:
+            # 3.1.1 链接数据库
+            conn = get_redis_connection('carts')
+
+            # 3.1.2 Hash类型保存
+            sku_id_conut = conn.hgetall('cart_%s' % user.id)
+            sku_id_list = sku_id_conut.keys()
+            # 3.1.3 Set类型保存
+            if selected:
+                conn.sadd('cart_selected%s' % user.id, *sku_id_list)
+            else:
+                conn.srem('cart_selected%s' % user.id, *sku_id_list)
+            # 3.1.4 返回响应
+            return Response(serializer.data)
+        # 3.2 用户未登录
+        else:
+            response = Response(serializer.data)
+            # 3.2.1 获取cookie，并判断。为空置为{}
+            cart_cookie = request.COOKIES.get('cart_cookie')
+            # 3.2.2 如果存在，cookie解码，并判断是否存在响应商品，如果存在，数量增加
+            if cart_cookie:
+                # 解码
+                cart = pickle.loads(base64.b64decode(cart_cookie.encode()))
+                for sku_id in cart.keys():
+                    cart[sku_id]['selected'] = selected
+
+                cart_cookie = base64.b64encode(pickle.dumps(cart)).decode()
+                response.set_cookie('cart_cookie', cart_cookie, 60 * 60 * 24)
+
+            return response
 
 class CartsView(APIView):
     """
