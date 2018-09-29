@@ -8,6 +8,7 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView, CreateAPIView
 # Create your views here.
+from meiduo_mall.utils.utils import merge_cart_cookie_to_redis
 from oauth.models import OAuthQQUser
 from itsdangerous import TimedJSONWebSignatureSerializer as TJS
 
@@ -49,22 +50,29 @@ class QQAuthUserView(CreateAPIView):
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
 
-        return Response({
+        response = Response({
             "username": user.username,
             "user_id": user.id,
             "token": token
         })
-    # def post(self, request):
-    #     # 获取前端表单数据
-    #     # 验证
-    #     # 获取access_token（因为未绑定时，在get中返回的名字就是access_token，但里面包的是openid），进行判断。如果存在，则进行解码，取出openid
-    #     # 判断openid是否存在。不存在，表示过期。存在，就给attrs添加openid属性
-    #     # 短信验证
-    #     # 用户验证
-    #     # 创建用户
-    #     pass
+        # TODO QQ扫码登录成功后合并操作
+        response = merge_cart_cookie_to_redis(request, response, user)
 
+        return response
 
+    def post(self, request, *args, **kwargs):
+        # 获取前端表单数据
+        # 验证
+        # 获取access_token（因为未绑定时，在get中返回的名字就是access_token，但里面包的是openid），进行判断。如果存在，则进行解码，取出openid
+        # 判断openid是否存在。不存在，表示过期。存在，就给attrs添加openid属性
+        # 短信验证
+        # 用户验证
+        # 创建用户
+        # TODO 用户绑定成功之后，也需要合并数据
+        response = super().post(request, *args, **kwargs)
+
+        response = merge_cart_cookie_to_redis(request, response, request.user)
+        return response
 
 class QQLoginURLView(APIView):
     """
