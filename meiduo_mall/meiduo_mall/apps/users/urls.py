@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^emails/$', views.UserEmailView.as_view()),
     url(r'^browse_histories/$', views.AddUserBrowsingHistoryView.as_view()),
     url(r'^emails/verification/$', views.VerifyEmailView.as_view()),
-    url(r'^authorizations/$', obtain_jwt_token),
+    # url(r'^authorizations/$', obtain_jwt_token),
+    url(r'^authorizations/$', views.UserAuthorizeView.as_view()),
 ]
