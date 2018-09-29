@@ -5,10 +5,11 @@ from django.shortcuts import render
 
 # Create your views here.
 from django_redis import get_redis_connection
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from carts.serializers import CartsSerializer, Cartserializers
+from carts.serializers import CartsSerializer, Cartserializers, CartDeleteSerializer
 from goods.models import SKU
 
 
@@ -181,5 +182,44 @@ class CartsView(APIView):
             response = Response(serializer.data)
             cart_cookie = base64.b64encode(pickle.dumps(cart)).decode()
             response.set_cookie('cart_cookie', cart_cookie, 60*60*24)
+
+            return response
+
+    def delete(self, request):
+        """保存商品信息到购物车"""
+        # 1. 获取前端json数据
+        data = request.data
+        # 2. 序列化数据，并取出三个数据（sku_id, count, selected）
+        serializer = CartDeleteSerializer(data)
+        sku_id = serializer.data['sku_id']
+        # 3. 用户登录判断
+        try:
+            user = request.user
+        except:
+            user = None
+
+        # 3.1 用户已登录
+        if user is not None:
+            # 3.1.1 链接数据库
+            conn = get_redis_connection('carts')
+
+            # 3.1.2 Hash类型保存
+            conn.hdel('cart_%s' % user.id, sku_id)
+
+            # 3.1.4 返回响应
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        # 3.2 用户未登录
+        else:
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+            # 3.2.1 获取cookie，并判断。为空置为{}
+            cart_cookie = request.COOKIES.get('cart_cookie')
+            # 3.2.2 如果存在，cookie解码，并判断是否存在响应商品，如果存在，数量增加
+            if cart_cookie:
+                # 解码
+                cart = pickle.loads(base64.b64decode(cart_cookie.encode()))
+                if sku_id in cart:  # 判断要删除的商品是否在cookie列表中
+                    del cart[sku_id]
+                    cart_cookie = base64.b64encode(pickle.dumps(cart)).decode()
+                    response.set_cookie('cart_cookie', cart_cookie, 60 * 60 * 24)
 
             return response
