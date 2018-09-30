@@ -17,7 +17,7 @@ class PaymentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, order_id):
-        # 1. 验证订单编号
+        # # 1. 验证订单编号
         try:
             order = OrderInfo.objects.get(user=request.user, order_id=order_id, pay_method=2)
         except:
@@ -43,6 +43,6 @@ class PaymentView(APIView):
         )
 
         # 拼接url
-        alipay_url = settings.ALIPAY_URL + order_string
+        alipay_url = settings.ALIPAY_URL + '?' + order_string
 
         return Response({'alipay_url': alipay_url})
